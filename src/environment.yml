@@ -1,0 +1,6 @@
+name: opt-ill
+dependencies:
+  - python=3.7.2
+  - pandas
+  - numpy
+  - bokeh
