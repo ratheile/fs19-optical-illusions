@@ -81,9 +81,13 @@ def morphCoordinates(distortion, phi):
     originalX = sin(phi)
     originalY = cos(phi)
 
-    shift = 1*(2*distortion - 1) * ((1+cos(4*phi))/2)
+    amount = 0.2
 
-    return ((originalX*(1+shift)), (originalY*(1+shift)))
+    shift = amount*(2*distortion - 1) * ((cos(4*phi)))
+
+    rotCorr = phi + 4 * amount * (2*distortion - 1) * ((sin(4*phi)))
+
+    return ((originalX*(1+shift)), (originalY*(1+shift)), rotCorr*180/pi)
 
 
 def gabor_patch(size, psi):
@@ -119,17 +123,17 @@ def draw(variationID, distortion):
 
     for i in range(patches):
         phi = phi0 + i * dPhi
-        phiDeg = phi * 180 / pi
         patch_mat = gabor_patch(patchsize, phi)
         patch_png = cv2.imencode('.png', patch_mat)
         patch = getPatch(phi, patchsize, patchsize)
 
 
-        mask = Image.new('L', patch.size, 255)
-        patch = patch.rotate(phiDeg, expand=True)
-        mask = mask.rotate(phiDeg, expand=True)
-        
         coord = morphCoordinates(distortion, phi)
+
+        mask = Image.new('L', patch.size, 255)
+        patch = patch.rotate(coord[2], expand=True)
+        mask = mask.rotate(coord[2], expand=True)
+        
         pilImage.paste(
             patch,
             ( # the box parameter
