@@ -129,7 +129,7 @@ save_button.on_click(save_button_cb)
 
 #slider.on_change('value', cb)
 # hack to throttle slider callback (https://stackoverflow.com/questions/38375961/throttling-in-bokeh-application/38379136#38379136)
-distortion_slider.callback_policy = 'mouseup' #call only on mouseup
+distortion_slider.callback_policy = 'continuous' #call only on mouseup
 #slider.callback_throttle = 50 #call max every x ms
 source = ColumnDataSource(data=dict(value=[]))
 source.on_change('data', slider_cb) 

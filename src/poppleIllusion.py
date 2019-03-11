@@ -3,10 +3,18 @@ import numpy as np
 
 from math import *
 from bokeh.plotting import figure
+from bokeh.models import ColumnDataSource
 from PIL import Image
 from PIL import ImageDraw
 
 staticRsrcFolder = ""
+
+width = 500
+height = 500
+radius = 200
+patches = 60
+p = figure()
+source = ColumnDataSource()
 
 def init(_staticRsrcFolder):
     """This function will be called before the start of the experiment
@@ -14,8 +22,28 @@ def init(_staticRsrcFolder):
     
     :param _staticRsrcFolder: path to a folder where static resources can be stored
     """
-    global staticRsrcFolder
+    global staticRsrcFolder, p, source
     staticRsrcFolder = _staticRsrcFolder
+
+
+    p = figure(plot_width=width, plot_height=height, x_range=(0, 1), y_range=(0, 1))
+    #p.outline_line_color = None
+    p.toolbar.active_drag = None
+    p.toolbar.logo = None
+    p.toolbar_location = None
+    p.xaxis.visible = None
+    p.yaxis.visible = None
+    p.xgrid.grid_line_color = None
+    p.ygrid.grid_line_color = None
+
+    pilImage = Image.new("L", (width, height), (150))
+
+    npImg = np.empty((width, height), dtype=np.uint8)
+    view = npImg.view(dtype=np.uint8).reshape((width, height))
+    view[:,:] = np.flipud(np.asarray(pilImage))
+
+    source = ColumnDataSource({'image': [npImg]})
+    p.image(image='image', x=0, y=0, dw=1, dh=1, source=source)
 
 def getName():
     "Returns the name of the illusion"
@@ -66,21 +94,7 @@ def draw(variationID, distortion):
     :return handle to bokeh figure that contains the optical illusion
     """
 
-    width = 500
-    height = 500
-    radius = 200
-    patches = 60
-
-    ## Create figure and disable axes and tools
-    p = figure(plot_width=width, plot_height=height, x_range=(0, 1), y_range=(0, 1))
-    #p.outline_line_color = None
-    p.toolbar.active_drag = None
-    p.toolbar.logo = None
-    p.toolbar_location = None
-    p.xaxis.visible = None
-    p.yaxis.visible = None
-    p.xgrid.grid_line_color = None
-    p.ygrid.grid_line_color = None
+    global p, source
 
     pilImage = Image.new("L", (width, height), (150))
 
@@ -100,11 +114,11 @@ def draw(variationID, distortion):
         
         coord = morphCoordinates(distortion, phi)
         pilImage.paste(patch, (width/2 - patch.size[0]/2 + int(round(radius*coord[0])), height/2 - patch.size[1]/2 + int(round(radius*coord[1]))), mask)
-    
+
 
     npImg = np.empty((width, height), dtype=np.uint8)
     view = npImg.view(dtype=np.uint8).reshape((width, height))
     view[:,:] = np.flipud(np.asarray(pilImage))
+    source.data = {'image': [npImg]}
 
-    p.image(image=[npImg], x=0, y=0, dw=1, dh=1)
     return p
