@@ -11,6 +11,18 @@ class Filter:
   psi: float
   filter: Any
 
+def gabor_patch(size, psi):
+    theta = 0.0
+    sigma = 6.0
+    lambd = 31
+    kern = cv2.getGaborKernel(
+      (size, size),
+      sigma, theta, lambd, 0.5, psi, ktype=cv2.CV_32F
+    )
+
+    kern /= 1.5*kern.sum()
+    return kern
+
 def build_filters():
   filters = []
   ksize = 31
@@ -19,12 +31,7 @@ def build_filters():
   end = np.pi
 
   for psi in np.arange(start, end, (end - start) / 16):
-    theta = 0.0
-    sigma = 6.0
-    lambd = 31
-    kern = cv2.getGaborKernel((ksize, ksize), sigma, theta, lambd, 0.5, psi, ktype=cv2.CV_32F)
-    kern /= 1.5*kern.sum()
-    filters.append(Filter(psi,kern))
+    filters.append(Filter(psi, gabor_patch(ksize, psi)))
   return filters
 
 if __name__ == '__main__':

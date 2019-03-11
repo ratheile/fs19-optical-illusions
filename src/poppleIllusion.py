@@ -1,6 +1,7 @@
 import os
 import numpy as np
 
+import cv2
 from math import *
 from bokeh.plotting import figure
 from bokeh.models import ColumnDataSource
@@ -85,6 +86,18 @@ def morphCoordinates(distortion, phi):
     return ((originalX*(1+shift)), (originalY*(1+shift)))
 
 
+def gabor_patch(size, psi):
+    theta = 0.0
+    sigma = 6.0
+    lambd = 31
+    kern = cv2.getGaborKernel(
+      (size, size),
+      sigma, theta, lambd, 0.5, psi, ktype=cv2.CV_32F
+    )
+
+    kern /= 1.5*kern.sum()
+    return kern
+
 def draw(variationID, distortion):
     """This function generates the optical illusion figure.
     The function should return a bokeh figure of size 500x500 pixels.
@@ -107,14 +120,25 @@ def draw(variationID, distortion):
     for i in range(patches):
         phi = phi0 + i * dPhi
         phiDeg = phi * 180 / pi
+        patch_mat = gabor_patch(patchsize, phi)
+        patch_png = cv2.imencode('.png', patch_mat)
         patch = getPatch(phi, patchsize, patchsize)
+
+
         mask = Image.new('L', patch.size, 255)
         patch = patch.rotate(phiDeg, expand=True)
         mask = mask.rotate(phiDeg, expand=True)
         
         coord = morphCoordinates(distortion, phi)
-        pilImage.paste(patch, (width/2 - patch.size[0]/2 + int(round(radius*coord[0])), height/2 - patch.size[1]/2 + int(round(radius*coord[1]))), mask)
-
+        pilImage.paste(
+            patch,
+            ( # the box parameter
+                int(width/2  - patch.size[0]/2 + int(round(radius*coord[0]))),
+                int(height/2 - patch.size[1]/2 + int(round(radius*coord[1])))
+            ),
+            mask
+        )
+    
 
     npImg = np.empty((width, height), dtype=np.uint8)
     view = npImg.view(dtype=np.uint8).reshape((width, height))
