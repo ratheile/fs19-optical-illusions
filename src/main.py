@@ -13,7 +13,7 @@ import json
 ## here the illusion is imported 
 # import illusionTemplate as illusion
 #import illusionTemplateAlt as illusion
-import threeSquaresIllusion as illusion
+import poppleIllusion as illusion
 
 ## static resource folder
 staticRsrcFolder = "illusionApp/static"

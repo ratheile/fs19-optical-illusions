@@ -31,7 +31,6 @@ default_distort = 0.
 # line width of the black lines in the pattern  
 default_pattern_linewidth = 1.8 
 # Hatch sets the hatching pattern in a Matplotlib patch. hatch can be one of: 
-# [‘/’ | ‘\’ | ‘|’ | ‘-‘ | ‘+’ | ‘x’ | ‘o’ | ‘O’ | ‘.’ | ‘*’]
 # Which fills a matplotlib patch with a different pattern. 
 default_hatch_1 = "/"
 # 
@@ -372,7 +371,7 @@ def draw(variationID, distortion):
 
     ### Draw the nine background squares 
     # The width of the line of the pattern. This is a parameter of Matplotlib. 
-    matplotlib.rcParams['hatch.linewidth'] = pattern_linewidth
+    # matplotlib.rcParams['hatch.linewidth'] = pattern_linewidth
     # Container for all the elements to be drawn 
     patches_arr = []
     sizes = np.arange(0., pattern_square_width * 3, pattern_square_width)
