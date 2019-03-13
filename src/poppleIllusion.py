@@ -109,7 +109,7 @@ def gabor_patch(size, psi):
     )
 
     kern /= 1.5*kern.sum()
-    #cv2.blur(kern, (int(size / blur_ratio), int(size / blur_ratio)))
+    cv2.blur(kern, (int(size / blur_ratio), int(size / blur_ratio)))
 
     return kern
 
