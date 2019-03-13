@@ -109,7 +109,7 @@ def draw(variationID, distortion):
 
 
 
-    for i in range(patches/8 + 1):
+    for i in range(int(patches/8) + 1):
         phi = phi0 + i * dPhi
         patch_mat = gabor_patch(patchsize, phi)
         # patch_mat = np.max(patch_mat)
