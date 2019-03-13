@@ -7,6 +7,7 @@ from bokeh.plotting import figure
 from bokeh.models import ColumnDataSource
 from PIL import Image
 from PIL import ImageDraw
+from PIL import ImageChops
 
 staticRsrcFolder = ""
 
@@ -113,7 +114,7 @@ def draw(variationID, distortion):
 
     global p, source
 
-    pilImage = Image.new("L", (width, height), (150))
+    pilImage = Image.new("L", (width, height), (255))
 
     dPhi = pi / (patches / 2)
     phi0 = dPhi / 2
@@ -121,7 +122,7 @@ def draw(variationID, distortion):
 
 
 
-    for i in range(patches):
+    for i in range(patches/8 + 1):
         phi = phi0 + i * dPhi
         patch_mat = gabor_patch(patchsize, phi)
         patch_png = cv2.imencode('.png', patch_mat)
@@ -143,6 +144,10 @@ def draw(variationID, distortion):
             mask
         )
     
+
+    pilImage = ImageChops.darker(pilImage.transpose(Image.FLIP_LEFT_RIGHT), pilImage) 
+    pilImage = ImageChops.darker(pilImage.transpose(Image.FLIP_TOP_BOTTOM), pilImage)
+    pilImage = ImageChops.darker(pilImage.rotate(90), pilImage)
 
     npImg = np.empty((width, height), dtype=np.uint8)
     view = npImg.view(dtype=np.uint8).reshape((width, height))
