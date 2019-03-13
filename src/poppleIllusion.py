@@ -7,16 +7,27 @@ from math import *
 from bokeh.plotting import figure
 from bokeh.models import ColumnDataSource
 from PIL import Image
-from PIL import ImageDraw
-from PIL import ImageChops
 from PIL import ImageOps
+from PIL import ImageDraw
 
-width = 500
-height = 500
-radius = 200
-patches = 60
+enableCheat = False
+width = 800
+height = 800
+radius = 350
 p = figure()
 source = ColumnDataSource()
+
+illusion_variations = {
+    0: {"originalID": 0, "patches" : 72, 'shiftfactor': 16}, 
+    1: {"originalID": 1, "patches" : 72, 'shiftfactor': 8}, 
+    2: {"originalID": 2, "patches" : 40, 'shiftfactor': 16}, 
+    3: {"originalID": 3, "patches" : 40, 'shiftfactor': 8}, 
+    4: {"originalID": 4, "patches" : 40, 'shiftfactor': 4}, 
+    5: {"originalID": 5, "patches" : 72, 'shiftfactor': 4}, 
+    6: {"originalID": 6, "patches" : 96, 'shiftfactor': 16}, 
+    7: {"originalID": 7, "patches" : 96, 'shiftfactor': 8}, 
+    8: {"originalID": 8, "patches" : 96, 'shiftfactor': 64} 
+}
 
 
 staticRsrcFolder = ""
@@ -41,14 +52,14 @@ def init(_staticRsrcFolder):
     p.xgrid.grid_line_color = None
     p.ygrid.grid_line_color = None
 
-    pilImage = Image.new("L", (width, height), (150))
+    pilImage = Image.new('RGBA', (width, height), (150,150,150,255))
 
-    npImg = np.empty((width, height), dtype=np.uint8)
-    view = npImg.view(dtype=np.uint8).reshape((width, height))
+    npImg = np.empty((width, height), dtype=np.uint32)
+    view = npImg.view(dtype=np.uint8).reshape((width, height,4))
     view[:,:] = np.flipud(np.asarray(pilImage))
 
     source = ColumnDataSource({'image': [npImg]})
-    p.image(image='image', x=0, y=0, dw=1, dh=1, source=source)
+    p.image_rgba(image='image', x=0, y=0, dw=1, dh=1, source=source)
 
 
 def getName():
@@ -75,19 +86,22 @@ def getQuestion():
 def getNumVariations():
     "Returns the number of variations"
 
-    return 3
+    return len(illusion_variations)
 
 
 def getPatch(phase, width, height):
     patch = Image.new("L", (width, height), (0) )
     return patch
 
+def cheat():
+    global enableCheat
+    enableCheat = not enableCheat
+
 def morphCoordinates(distortion, phi):
+    originalX = cos(phi)
+    originalY = sin(phi)
 
-    originalX = sin(phi)
-    originalY = cos(phi)
-
-    amount = 0.2
+    amount = 0.1
 
     shift = amount*(2*distortion - 1) * ((cos(4*phi)))
 
@@ -100,7 +114,7 @@ def gabor_patch(size, psi):
 
     theta = 0.0
     blur_ratio = 5
-    sigma = size/6
+    sigma = size/5
     lambd = size
 
     kern = cv2.getGaborKernel(
@@ -123,25 +137,32 @@ def draw(variationID, distortion):
 
     global p, source
 
-    pilImage = Image.new("L", (width, height), (255))
+    pilImage = Image.new("RGBA", (width, height), (125,125,125,255))
+
+    patches = illusion_variations[variationID]['patches']
+    factor = illusion_variations[variationID]['shiftfactor']
 
     dPhi = pi / (patches / 2)
-    phi0 = dPhi / 2
+    phi0 = 0# dPhi / 2
     patchsize = int(floor(radius * pi * 2 / patches))
+    direction = 1
+    patchPhi = 0
 
-
-
-    for i in range(int(patches/8) + 1):
+    for i in range(int(patches)):
         phi = phi0 + i * dPhi
-        patch_mat = gabor_patch(patchsize, phi)
+        patchPhi =  direction * (factor * i * dPhi) + phi0
 
-        patch_mat = np.interp(patch_mat,(-1, 1), (0, 255))
+        if i % (int(patches/8)) == 0:
+            direction *= -1
+
+        patch_mat = gabor_patch(patchsize, patchPhi)
+        patch_mat = np.interp(patch_mat, (-1, 1), (0, 255))
         patch = Image.fromarray(np.uint8(patch_mat))
 
         coord = morphCoordinates(distortion, phi)
         mask = Image.new('L', patch.size, 255)
-        patch = patch.rotate(coord[2] + 90, expand=True)
-        mask = mask.rotate(coord[2] + 90, expand=True)
+        patch = patch.rotate(-coord[2], expand=True)
+        mask = mask.rotate(-coord[2], expand=True)
         
         pilImage.paste(
             patch,
@@ -151,15 +172,27 @@ def draw(variationID, distortion):
             ),
             mask
         )
+
+    draw = ImageDraw.Draw(pilImage)
+    if enableCheat:
+        draw.ellipse(
+            [
+                (width*0.5 - radius, height*0.5 - radius), 
+                (width*0.5 + radius, height*0.5 + radius)
+            ], 
+            outline=(255,0,0)
+        )
+
+    draw.line([width/2, height/2 - 10, width/2, height/2 + 10], fill=(255,0,0), width=1)
+    draw.line([width/2 - 10, height/2, width/2 + 10, height/2], fill=(255,0,0), width=1)
+
+    del draw
     
-
-    pilImage = ImageChops.darker(pilImage.transpose(Image.FLIP_LEFT_RIGHT), pilImage) 
-    pilImage = ImageChops.darker(pilImage.transpose(Image.FLIP_TOP_BOTTOM), pilImage)
-    pilImage = ImageChops.darker(pilImage.rotate(90), pilImage)
-
-    npImg = np.empty((width, height), dtype=np.uint8)
-    view = npImg.view(dtype=np.uint8).reshape((width, height))
+    npImg = np.empty((width, height), dtype=np.uint32)
+    view = npImg.view(dtype=np.uint8).reshape((width, height, 4))
     view[:,:] = np.flipud(np.asarray(pilImage))
+
+    print(distortion)
 
     source.data = {'image': [npImg]}
     return p
