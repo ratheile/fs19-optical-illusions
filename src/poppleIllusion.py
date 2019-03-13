@@ -5,10 +5,19 @@ import numpy as np
 import cv2
 from math import *
 from bokeh.plotting import figure
+from bokeh.models import ColumnDataSource
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageChops
 from PIL import ImageOps
+
+width = 500
+height = 500
+radius = 200
+patches = 60
+p = figure()
+source = ColumnDataSource()
+
 
 staticRsrcFolder = ""
 
@@ -18,8 +27,29 @@ def init(_staticRsrcFolder):
     
     :param _staticRsrcFolder: path to a folder where static resources can be stored
     """
-    global staticRsrcFolder
+    global staticRsrcFolder, p, source
     staticRsrcFolder = _staticRsrcFolder
+
+
+    p = figure(plot_width=width, plot_height=height, x_range=(0, 1), y_range=(0, 1))
+    #p.outline_line_color = None
+    p.toolbar.active_drag = None
+    p.toolbar.logo = None
+    p.toolbar_location = None
+    p.xaxis.visible = None
+    p.yaxis.visible = None
+    p.xgrid.grid_line_color = None
+    p.ygrid.grid_line_color = None
+
+    pilImage = Image.new("L", (width, height), (150))
+
+    npImg = np.empty((width, height), dtype=np.uint8)
+    view = npImg.view(dtype=np.uint8).reshape((width, height))
+    view[:,:] = np.flipud(np.asarray(pilImage))
+
+    source = ColumnDataSource({'image': [npImg]})
+    p.image(image='image', x=0, y=0, dw=1, dh=1, source=source)
+
 
 def getName():
     "Returns the name of the illusion"
@@ -53,7 +83,6 @@ def getPatch(phase, width, height):
     return patch
 
 def morphCoordinates(distortion, phi):
-    distortion = 0.5
 
     originalX = sin(phi)
     originalY = cos(phi)
@@ -93,21 +122,7 @@ def draw(variationID, distortion):
     :return handle to bokeh figure that contains the optical illusion
     """
 
-    width = 500
-    height = 500
-    radius = 200
-    patches = 60
-
-    ## Create figure and disable axes and tools
-    p = figure(plot_width=width, plot_height=height, x_range=(0, 1), y_range=(0, 1))
-    #p.outline_line_color = None
-    p.toolbar.active_drag = None
-    p.toolbar.logo = None
-    p.toolbar_location = None
-    p.xaxis.visible = None
-    p.yaxis.visible = None
-    p.xgrid.grid_line_color = None
-    p.ygrid.grid_line_color = None
+    global p, source
 
     pilImage = Image.new("L", (width, height), (255))
 
@@ -147,5 +162,5 @@ def draw(variationID, distortion):
     view = npImg.view(dtype=np.uint8).reshape((width, height))
     view[:,:] = np.flipud(np.asarray(pilImage))
 
-    p.image(image=[npImg], x=0, y=0, dw=1, dh=1)
+    source.data = {'image': [npImg]}
     return p
