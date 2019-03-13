@@ -1,21 +1,14 @@
 import os
+import io
 import numpy as np
 
 import cv2
 from math import *
 from bokeh.plotting import figure
-from bokeh.models import ColumnDataSource
 from PIL import Image
 from PIL import ImageDraw
 
 staticRsrcFolder = ""
-
-width = 500
-height = 500
-radius = 200
-patches = 60
-p = figure()
-source = ColumnDataSource()
 
 def init(_staticRsrcFolder):
     """This function will be called before the start of the experiment
@@ -23,28 +16,8 @@ def init(_staticRsrcFolder):
     
     :param _staticRsrcFolder: path to a folder where static resources can be stored
     """
-    global staticRsrcFolder, p, source
+    global staticRsrcFolder
     staticRsrcFolder = _staticRsrcFolder
-
-
-    p = figure(plot_width=width, plot_height=height, x_range=(0, 1), y_range=(0, 1))
-    #p.outline_line_color = None
-    p.toolbar.active_drag = None
-    p.toolbar.logo = None
-    p.toolbar_location = None
-    p.xaxis.visible = None
-    p.yaxis.visible = None
-    p.xgrid.grid_line_color = None
-    p.ygrid.grid_line_color = None
-
-    pilImage = Image.new("L", (width, height), (150))
-
-    npImg = np.empty((width, height), dtype=np.uint8)
-    view = npImg.view(dtype=np.uint8).reshape((width, height))
-    view[:,:] = np.flipud(np.asarray(pilImage))
-
-    source = ColumnDataSource({'image': [npImg]})
-    p.image(image='image', x=0, y=0, dw=1, dh=1, source=source)
 
 def getName():
     "Returns the name of the illusion"
@@ -81,13 +54,9 @@ def morphCoordinates(distortion, phi):
     originalX = sin(phi)
     originalY = cos(phi)
 
-    amount = 0.2
+    shift = 1*(2*distortion - 1) * ((1+cos(4*phi))/2)
 
-    shift = amount*(2*distortion - 1) * ((cos(4*phi)))
-
-    rotCorr = phi + 4 * amount * (2*distortion - 1) * ((sin(4*phi)))
-
-    return ((originalX*(1+shift)), (originalY*(1+shift)), rotCorr*180/pi)
+    return ((originalX*(1+shift)), (originalY*(1+shift)))
 
 
 def gabor_patch(size, psi):
@@ -111,7 +80,21 @@ def draw(variationID, distortion):
     :return handle to bokeh figure that contains the optical illusion
     """
 
-    global p, source
+    width = 500
+    height = 500
+    radius = 200
+    patches = 60
+
+    ## Create figure and disable axes and tools
+    p = figure(plot_width=width, plot_height=height, x_range=(0, 1), y_range=(0, 1))
+    #p.outline_line_color = None
+    p.toolbar.active_drag = None
+    p.toolbar.logo = None
+    p.toolbar_location = None
+    p.xaxis.visible = None
+    p.yaxis.visible = None
+    p.xgrid.grid_line_color = None
+    p.ygrid.grid_line_color = None
 
     pilImage = Image.new("L", (width, height), (150))
 
@@ -123,17 +106,21 @@ def draw(variationID, distortion):
 
     for i in range(patches):
         phi = phi0 + i * dPhi
+        phiDeg = phi * 180 / pi
         patch_mat = gabor_patch(patchsize, phi)
-        patch_png = cv2.imencode('.png', patch_mat)
-        patch = getPatch(phi, patchsize, patchsize)
-
-
-        coord = morphCoordinates(distortion, phi)
+        # patch_mat = np.max(patch_mat)
+        
+        is_success, buffer = cv2.imencode(".jpg", patch_mat)
+        patch_stream = io.BytesIO(buffer)
+        patch_stream.seek(0) # set position of stream to 0
+        patch = Image.open(patch_stream)
+        # patch = getPatch(phi, patchsize, patchsize)
 
         mask = Image.new('L', patch.size, 255)
-        patch = patch.rotate(coord[2], expand=True)
-        mask = mask.rotate(coord[2], expand=True)
+        patch = patch.rotate(phiDeg, expand=True)
+        mask = mask.rotate(phiDeg, expand=True)
         
+        coord = morphCoordinates(distortion, phi)
         pilImage.paste(
             patch,
             ( # the box parameter
@@ -147,6 +134,6 @@ def draw(variationID, distortion):
     npImg = np.empty((width, height), dtype=np.uint8)
     view = npImg.view(dtype=np.uint8).reshape((width, height))
     view[:,:] = np.flipud(np.asarray(pilImage))
-    source.data = {'image': [npImg]}
 
+    p.image(image=[npImg], x=0, y=0, dw=1, dh=1)
     return p
