@@ -98,26 +98,19 @@ def morphCoordinates(distortion, phi):
 
 def gabor_patch(size, psi):
     theta = 0.0
-<<<<<<< HEAD
-    sigma = 6.0
-    lambd = 31
-    blur_ratio = 5
 
-=======
+    blur_ratio = 5
     sigma = size/6
     lambd = size
->>>>>>> 76d3881aa65d7297dbce3fe79b53af622bebabf6
+
     kern = cv2.getGaborKernel(
       (size, size),
       sigma, theta, lambd, 0.5, psi, ktype=cv2.CV_32F
     )
 
-<<<<<<< HEAD
     kern /= 1.5*kern.sum()
     cv2.blur(kern, (int(size / blur_ratio), int(size / blur_ratio)))
 
-=======
->>>>>>> 76d3881aa65d7297dbce3fe79b53af622bebabf6
     return kern
 
 def draw(variationID, distortion):
