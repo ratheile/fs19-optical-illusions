@@ -8,6 +8,7 @@ from bokeh.plotting import figure
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageChops
+from PIL import ImageOps
 
 staticRsrcFolder = ""
 
@@ -52,6 +53,8 @@ def getPatch(phase, width, height):
     return patch
 
 def morphCoordinates(distortion, phi):
+    distortion = 0.5
+
     originalX = sin(phi)
     originalY = cos(phi)
 
@@ -66,18 +69,26 @@ def morphCoordinates(distortion, phi):
 
 def gabor_patch(size, psi):
     theta = 0.0
+<<<<<<< HEAD
     sigma = 6.0
     lambd = 31
     blur_ratio = 5
 
+=======
+    sigma = size/6
+    lambd = size
+>>>>>>> 76d3881aa65d7297dbce3fe79b53af622bebabf6
     kern = cv2.getGaborKernel(
       (size, size),
       sigma, theta, lambd, 0.5, psi, ktype=cv2.CV_32F
     )
 
+<<<<<<< HEAD
     kern /= 1.5*kern.sum()
     cv2.blur(kern, (int(size / blur_ratio), int(size / blur_ratio)))
 
+=======
+>>>>>>> 76d3881aa65d7297dbce3fe79b53af622bebabf6
     return kern
 
 def draw(variationID, distortion):
@@ -116,18 +127,14 @@ def draw(variationID, distortion):
     for i in range(int(patches/8) + 1):
         phi = phi0 + i * dPhi
         patch_mat = gabor_patch(patchsize, phi)
-        # patch_mat = np.max(patch_mat)
-        
-        is_success, buffer = cv2.imencode(".jpg", patch_mat)
-        patch_stream = io.BytesIO(buffer)
-        patch_stream.seek(0) # set position of stream to 0
-        patch = Image.open(patch_stream)
-        # patch = getPatch(phi, patchsize, patchsize)
+
+        patch_mat = np.interp(patch_mat,(-1, 1), (0, 255))
+        patch = Image.fromarray(np.uint8(patch_mat))
 
         coord = morphCoordinates(distortion, phi)
         mask = Image.new('L', patch.size, 255)
-        patch = patch.rotate(coord[2], expand=True)
-        mask = mask.rotate(coord[2], expand=True)
+        patch = patch.rotate(coord[2] + 90, expand=True)
+        mask = mask.rotate(coord[2] + 90, expand=True)
         
         pilImage.paste(
             patch,
