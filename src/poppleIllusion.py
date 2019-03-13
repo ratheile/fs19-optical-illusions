@@ -112,9 +112,12 @@ def morphCoordinates(distortion, phi):
 
 def gabor_patch(size, psi):
 
+    oversample_ratio = 1
     theta = 0.0
-    blur_ratio = 5
-    sigma = size/5
+    blur_ratio = 2
+
+    size = size * oversample_ratio
+    sigma = size/6
     lambd = size
 
     kern = cv2.getGaborKernel(
@@ -124,7 +127,13 @@ def gabor_patch(size, psi):
 
     cv2.blur(kern, (int(size / blur_ratio), int(size / blur_ratio)))
 
-    return kern
+    if oversample_ratio > 1:
+        return cv2.resize(
+            kern, 
+            (int(size / oversample_ratio) , int(size / oversample_ratio))
+        )
+    else:
+        return kern
 
 def draw(variationID, distortion):
     """This function generates the optical illusion figure.
@@ -161,8 +170,8 @@ def draw(variationID, distortion):
 
         coord = morphCoordinates(distortion, phi)
         mask = Image.new('L', patch.size, 255)
-        patch = patch.rotate(-coord[2], expand=True)
-        mask = mask.rotate(-coord[2], expand=True)
+        patch = patch.rotate(-coord[2], expand=True, resample=Image.BICUBIC)
+        mask = mask.rotate(-coord[2], expand=True, resample=Image.BICUBIC)
         
         pilImage.paste(
             patch,
