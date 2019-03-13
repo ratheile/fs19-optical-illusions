@@ -13,11 +13,11 @@ class Filter:
 
 def gabor_patch(size, psi):
     theta = 0.0
-    sigma = 6.0
+    sigma = 4.0
     lambd = 31
     kern = cv2.getGaborKernel(
       (size, size),
-      sigma, theta, lambd, 0.5, psi, ktype=cv2.CV_32F
+      sigma, theta, lambd, 0.7, psi, ktype=cv2.CV_32F
     )
 
     kern /= 1.5*kern.sum()

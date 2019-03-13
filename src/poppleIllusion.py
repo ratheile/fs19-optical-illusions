@@ -68,12 +68,16 @@ def gabor_patch(size, psi):
     theta = 0.0
     sigma = 6.0
     lambd = 31
+    blur_ratio = 5
+
     kern = cv2.getGaborKernel(
       (size, size),
       sigma, theta, lambd, 0.5, psi, ktype=cv2.CV_32F
     )
 
     kern /= 1.5*kern.sum()
+    cv2.blur(kern, (int(size / blur_ratio), int(size / blur_ratio)))
+
     return kern
 
 def draw(variationID, distortion):
