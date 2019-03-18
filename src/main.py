@@ -61,6 +61,8 @@ submit_button = Button( label='Submit', width=140, button_type = "default")
 
 save_button = Button( label='Save Data', width=140, button_type = "default", disabled=True)
 
+cheat_button = Button(label='cheat', width=140, button_type='default')
+
 ## init illusion
 illusion.init(staticRsrcFolder)
 p = illusion.draw(permMap[variation_selector.active], distortion_slider.value)
@@ -74,7 +76,7 @@ layout = column(Div(text="<h2>{}</h2>".format(illusion.getName()), width=500), r
     row(Paragraph(text="Distort:", width=100), distortion_slider),
     row(Paragraph(text=illusion.getQuestion(), width=200), radio_group),
     submit_button,
-    save_button, width=600), pBox))
+    save_button, cheat_button, width=600), pBox))
 
 
 ## set callbacks
@@ -88,6 +90,15 @@ def submit_button_cb():
     #activate save_button if all variations were submitted
     if all([l['submitted'] for l in distortionData]):
         save_button.disabled = False
+
+def cheat_button_cb():
+    illusion.cheat()
+    if cheat_button.button_type == 'default':
+        cheat_button.button_type = 'success'
+    else:
+        cheat_button.button_type = 'default'
+    p = illusion.draw(permMap[variation_selector.active], distortion_slider.value)
+    pBox.children[0] = p
 
 def save_button_cb():
     def default(o):
@@ -126,6 +137,8 @@ submit_button.on_click(submit_button_cb)
 variation_selector.on_change('active', selector_cb)
 
 save_button.on_click(save_button_cb)
+
+cheat_button.on_click(cheat_button_cb)
 
 #slider.on_change('value', cb)
 # hack to throttle slider callback (https://stackoverflow.com/questions/38375961/throttling-in-bokeh-application/38379136#38379136)
