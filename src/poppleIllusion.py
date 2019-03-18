@@ -11,10 +11,14 @@ from PIL import ImageDraw
 from PIL import ImageChops
 from PIL import ImageOps
 
-width = 500
-height = 500
-radius = 200
+width = 1000
+height = 1000
+radius = 450
 patches = 60
+
+downsampled_width = 500
+downsampled_height = 500
+
 p = figure()
 source = ColumnDataSource()
 
