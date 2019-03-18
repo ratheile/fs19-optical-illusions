@@ -43,6 +43,8 @@ distortionData = [{'variationID': i, 'selectorID': invPermMap[i], 'submitted': F
 
 ## Create various gui widgets
 distortion_slider = Slider(start=0, end=1, step=0.001, value=0.5, show_value=False, tooltips=False)
+shift_slider = Slider(start=6, end=12, step=1, value=1, show_value=False, tooltips=False)
+patch_slider = Slider(start=6, end=12, step=1, value=1, show_value=False, tooltips=False)
 
 def reset_slider(): 
     # randomize slider min, max and starting value for every illusion switch 
@@ -76,7 +78,11 @@ layout = column(Div(text="<h2>{}</h2>".format(illusion.getName()), width=500), r
     row(Paragraph(text="Distort:", width=100), distortion_slider),
     row(Paragraph(text=illusion.getQuestion(), width=200), radio_group),
     submit_button,
-    save_button, cheat_button, width=600), pBox))
+    save_button,
+    cheat_button,
+    row(Paragraph(text="Shift Slider", width=100), shift_slider),
+    row(Paragraph(text="Patch Slider", width=100), patch_slider),
+    width=600), pBox))
 
 
 ## set callbacks
@@ -133,6 +139,19 @@ def slider_cb(attr, old, new):
     p = illusion.draw(permMap[variation_selector.active], distortion_slider.value)
     pBox.children[0] = p
 
+def shift_slider_cb(attr, old, new):
+    # call draw function and put the new figure in the layout
+    p = illusion.draw(permMap[variation_selector.active], distortion_slider.value,
+        shift_override=shift_slider.value)
+
+def patch_slider_cb(attr, old, new):
+    # call draw function and put the new figure in the layout
+    p = illusion.draw(permMap[variation_selector.active], distortion_slider.value,
+        patch_override=patch_slider.value)
+
+    print("updating shift: {}".format(shift_slider.value))
+    pBox.children[0] = p
+
 submit_button.on_click(submit_button_cb)
 variation_selector.on_change('active', selector_cb)
 
@@ -140,7 +159,9 @@ save_button.on_click(save_button_cb)
 
 cheat_button.on_click(cheat_button_cb)
 
-#slider.on_change('value', cb)
+shift_slider.on_change('value', shift_slider_cb)
+patch_slider.on_change('value', patch_slider_cb)
+
 # hack to throttle slider callback (https://stackoverflow.com/questions/38375961/throttling-in-bokeh-application/38379136#38379136)
 distortion_slider.callback_policy = 'continuous' #call only on mouseup
 #slider.callback_throttle = 50 #call max every x ms

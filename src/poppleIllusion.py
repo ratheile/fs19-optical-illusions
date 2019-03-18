@@ -124,7 +124,7 @@ def gabor_patch(size, psi):
 
     size = size * oversample_ratio
     sigma = size/6
-    lambd = size
+    lambd = size/4
 
     kern = cv2.getGaborKernel(
       (size, size),
@@ -141,7 +141,7 @@ def gabor_patch(size, psi):
     else:
         return kern
 
-def draw(variationID, distortion):
+def draw(variationID, distortion, shift_override=None, patch_override=None):
     """This function generates the optical illusion figure.
     The function should return a bokeh figure of size 500x500 pixels.
 
@@ -154,8 +154,17 @@ def draw(variationID, distortion):
 
     pilImage = Image.new("RGBA", (width, height), (125,125,125,255))
 
-    patches = illusion_variations[variationID]['patches']
-    factor = illusion_variations[variationID]['shiftfactor']
+    if patch_override is not None:
+        print("Overriding number of patches: {}".format(patch_override))
+        patches = patch_override*8
+    else:
+        patches = illusion_variations[variationID]['patches']
+
+    if shift_override is not None:
+        print("Overriding shift: {}".format(shift_override))
+        factor = shift_override*8
+    else: 
+        factor = illusion_variations[variationID]['shiftfactor']
 
     dPhi = pi / (patches / 2)
     phi0 = 0# dPhi / 2
