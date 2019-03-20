@@ -226,7 +226,5 @@ def draw(variationID, distortion, shift_override=None, patch_override=None, lamb
     view = npImg.view(dtype=np.uint8).reshape((width, height, 4))
     view[:,:] = np.flipud(np.asarray(pilImage))
 
-    print(distortion)
-
     source.data = {'image': [npImg]}
     return p
