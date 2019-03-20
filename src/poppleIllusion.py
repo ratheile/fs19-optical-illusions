@@ -116,7 +116,7 @@ def morphCoordinates(distortion, phi):
     return ((originalX*(1+shift)), (originalY*(1+shift)), rotCorr*180/pi)
 
 
-def gabor_patch(size, psi):
+def gabor_patch(size, psi, lambda_mult=1):
 
     oversample_ratio = 1
     theta = 0.0
@@ -124,7 +124,7 @@ def gabor_patch(size, psi):
 
     size = size * oversample_ratio
     sigma = size/6
-    lambd = size/4
+    lambd = size/lambda_mult
 
     kern = cv2.getGaborKernel(
       (size, size),
@@ -141,7 +141,7 @@ def gabor_patch(size, psi):
     else:
         return kern
 
-def draw(variationID, distortion, shift_override=None, patch_override=None):
+def draw(variationID, distortion, shift_override=None, patch_override=None, lambda_override=None):
     """This function generates the optical illusion figure.
     The function should return a bokeh figure of size 500x500 pixels.
 
@@ -154,15 +154,25 @@ def draw(variationID, distortion, shift_override=None, patch_override=None):
 
     pilImage = Image.new("RGBA", (width, height), (125,125,125,255))
 
+    if lambda_override is not None:
+        print("Overriding the lambda frequency multiplier: {}".format(lambda_override))
+        illusion_variations[variationID]['lambda_multiplier'] = lambda_override
+
+    lambda_multiplier = 1
+    if 'lambda_multiplier' in illusion_variations[variationID]:
+        lambda_multiplier = illusion_variations[variationID]['lambda_multiplier']
+
     if patch_override is not None:
         print("Overriding number of patches: {}".format(patch_override))
         patches = patch_override*8
+        illusion_variations[variationID]['patches'] = patches
     else:
         patches = illusion_variations[variationID]['patches']
 
     if shift_override is not None:
         print("Overriding shift: {}".format(shift_override))
         factor = shift_override*8
+        illusion_variations[variationID]['shiftfactor'] = factor
     else: 
         factor = illusion_variations[variationID]['shiftfactor']
 
@@ -179,7 +189,7 @@ def draw(variationID, distortion, shift_override=None, patch_override=None):
         if i % (int(patches/8)) == 0:
             direction *= -1
 
-        patch_mat = gabor_patch(patchsize, patchPhi)
+        patch_mat = gabor_patch(patchsize, patchPhi, lambda_multiplier)
         patch_mat = np.interp(patch_mat, (-1, 1), (0, 255))
         patch = Image.fromarray(np.uint8(patch_mat))
 
