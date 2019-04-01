@@ -80,10 +80,10 @@ layout = column(Div(text="<h2>{}</h2>".format(illusion.getName()), width=500), r
     row(Paragraph(text=illusion.getQuestion(), width=200), radio_group),
     submit_button,
     save_button,
-    cheat_button,
-    row(Paragraph(text="Shift Slider", width=100), shift_slider),
-    row(Paragraph(text="Patch Slider", width=100), patch_slider),
-    row(Paragraph(text="Lambda Slider", width=100), lambda_slider),
+    # cheat_button,
+    # row(Paragraph(text="Shift Slider", width=100), shift_slider),
+    # row(Paragraph(text="Patch Slider", width=100), patch_slider),
+    # row(Paragraph(text="Lambda Slider", width=100), lambda_slider),
     width=600), pBox))
 
 
