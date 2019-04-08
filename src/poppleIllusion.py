@@ -83,7 +83,7 @@ def init(_staticRsrcFolder):
 def getName():
     "Returns the name of the illusion"
 
-    return "Template Illusion"
+    return "Popple Illusion"
 
 def getInstructions():
     "Returns the instructions as a HTML string"
@@ -98,7 +98,7 @@ def getInstructions():
 def getQuestion():
     "Returns a string with a Yes/No question that checks if the participant sees the illusion inverted"
 
-    return "Does the illusion look inverted?"
+    return "Could you get rid of the disortion?"
 
 def getNumVariations():
     "Returns the number of variations"
