@@ -10,9 +10,9 @@ from PIL import Image
 from PIL import ImageOps
 from PIL import ImageDraw
 
-width = 1000
-height = 1000
-radius = 450
+width = 500
+height = 500
+radius = 200
 patches = 60
 
 downsampled_width = 500
@@ -90,9 +90,8 @@ def getInstructions():
     
     instruction = """
         <p>Focus your attention on <b style=\"color:red\">the red cross</b> in the centre of the image.
-        Your task is to change the distort slider until all the polygons appear square. When ... or when
-        you can not find a slider position where ... answer the question and press the \"Submit\" button
-        below. Complete this task for each of the variations of this illusion listed below and then press \"Save Data\".</p>
+        Your task is to change the distort slider until the surrounding illusion appears completely circular.
+        </p>
     """
     return instruction
 
