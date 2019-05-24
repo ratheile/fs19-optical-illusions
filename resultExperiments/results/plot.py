@@ -60,10 +60,36 @@ def plot_results(results):
 			#pl.hist(slider_vals[colors==i+1], bins=np.linspace(0,1,50), normed=True)
 	pl.show()
 
+def plot_corr(results):
+    x = [40,40,72,72,56,56,88,88,104,104]
+    y_vals_tot =[]
+    for i in range(10):
+        y_vals = [data_point['inverted'] for data_point in results[i]]
+        y_vals_tot.append(y_vals)
+        print('variation {}: μ={:.2f}, σ={:.2f}'.format(i+1, np.mean(y_vals), np.std(y_vals)))
+        #pl.hist(y_vals, bins=np.linspace(0, 1, 200))
+    y_vals_new = []
+    y_vals_new.append(np.concatenate((y_vals_tot[0],y_vals_tot[1]),axis=None))
+    y_vals_new.append(np.concatenate((y_vals_tot[4],y_vals_tot[5]),axis=None))
+    y_vals_new.append(np.concatenate((y_vals_tot[2],y_vals_tot[3]),axis=None))
+    y_vals_new.append(np.concatenate((y_vals_tot[6],y_vals_tot[7]),axis=None))
+    y_vals_new.append(np.concatenate((y_vals_tot[8],y_vals_tot[9]),axis=None))
+    for i in range(len(y_vals_new)):
+        print('variation {}: μ={:.2f}, σ={:.2f}'.format(i+1, np.mean(y_vals_new[i]), np.std(y_vals_new[i])))
+    x_pos = np.arange(len(y_vals_new))
+    fig, ax = pl.subplots()
+    ax.errorbar(x_pos, np.mean(y_vals_new,axis=1), yerr=np.std(y_vals_new,axis=1), fmt='.k', capsize=10)
+    ax.set_xticks(x_pos)
+    ax.set_xticklabels([40,56,72,88,104])
+    #pl.savefig('patch_num_to_rating.eps',format='eps', dpi=900)
+    pl.savefig('patch_num_to_rating.png',format='png', dpi=900)
+    pl.show()
+
 def main():
 	json_objects = load_json_files()
 	results = filter_illusion(json_objects)
-	plot_results(results)
+	#plot_results(results)
+	plot_corr(results)
 
 if __name__ == '__main__':
 	main()
