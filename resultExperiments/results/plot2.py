@@ -37,7 +37,7 @@ for key, val in illusion_variations.items():
     cols.append("p{}s{}".format(val['patches'], val['shiftfactor']))
 # variation-wise dataset
 df_vw = pd.DataFrame(data, columns=cols)
-df_vw.boxplot()
+df_vw.boxplot(grid=False)
 
 
 #%%
