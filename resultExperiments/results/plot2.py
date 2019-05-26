@@ -18,7 +18,6 @@ illusion_variations = {
     9: {"originalID": 9, "patches" : 104, 'shiftfactor': 8} 
 }
 #%% Create one data table with ids and results
-path = 'resultExperiments/results/experiment/'
 fragments = []
 for file in os.listdir(path):
   fragment = pd.read_json(path + file)
@@ -45,7 +44,27 @@ for key, val in illusion_variations.items():
 
 # variation-wise dataset
 df_vw = reduce(lambda l, r: l.join(r), fragments[1:], fragments[0])
-df_vw.boxplot(grid=False)
+
+#%% add demographics to data
+path = 'resultExperiments/results/questionnaire/'
+for user_id in df_vw.index:
+  questionnaire = pd.read_json('{}{}.json'.format(path, user_id), typ='series')
+  df_vw.loc[user_id, 'vimp'] = questionnaire['Do you have any visual impairments?']
+  df_vw.loc[user_id, 'vimp_type'] = questionnaire['If yes, what and when did you experience these problems?']
+  df_vw.loc[user_id, 'other_exp'] = questionnaire['Did you ever participate in an experiment related to perceptual illusions?']
+  df_vw.loc[user_id, 'age'] = questionnaire['Age']
+  df_vw.loc[user_id, 'gender'] = questionnaire['Gender']
+
+#%% box plot of distortions
+df_vw.iloc[:,:10].boxplot(grid=False)
+#%% age distribution
+df_vw['age'].value_counts().plot.bar()
+
+#%%
+df_vw['gender'].value_counts().plot.bar()
+
+#%%
+df_vw['vimp'].value_counts().plot.bar()
 
 #%% Recreate Multi Histogram
 fig, axes = plt.subplots(10,1, figsize=(30, 10))
