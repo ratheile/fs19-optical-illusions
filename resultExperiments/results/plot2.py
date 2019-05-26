@@ -18,6 +18,7 @@ illusion_variations = {
     9: {"originalID": 9, "patches" : 104, 'shiftfactor': 8} 
 }
 #%% Create one data table with ids and results
+path = 'resultExperiments/results/experiment/'
 fragments = []
 for file in os.listdir(path):
   fragment = pd.read_json(path + file)
