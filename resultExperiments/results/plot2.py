@@ -3,6 +3,7 @@ import pandas as pd
 import os
 import matplotlib.pyplot as plt
 import numpy as np
+from functools import reduce
 
 illusion_variations = {
     0: {"originalID": 0, "patches" : 40, 'shiftfactor': 4}, 
@@ -16,39 +17,41 @@ illusion_variations = {
     8: {"originalID": 8, "patches" : 104, 'shiftfactor': 4},
     9: {"originalID": 9, "patches" : 104, 'shiftfactor': 8} 
 }
-#%%
+#%% Create one data table with ids and results
 path = 'resultExperiments/results/experiment/'
-df = pd.concat([pd.read_json(path + file) for file in os.listdir(path)], ignore_index=True)
+fragments = []
+for file in os.listdir(path):
+  fragment = pd.read_json(path + file)
+  userid = file.split('.')[0] 
+  fragment['userID'] = pd.Series([userid for i in range(len(fragment))])
+  fragments.append(fragment)
+
+df = pd.concat(fragments, ignore_index=True)
 dfp = df[df.illusionName == 'Popple Illusion'].copy()
 
-# Swap ids to correct shiftfactor order
+#%% Swap ids to correct shiftfactor order
 mask_7 = dfp.variationID == 7
 mask_6 = dfp.variationID == 6
 dfp.loc[mask_7, 'variationID'] = 6
 dfp.loc[mask_6 , 'variationID'] = 7
 
-
-# Boxplot preparation
-data = np.zeros((37,10))
-cols = []
+#%% Boxplot preparation
+fragments = []
 for key, val in illusion_variations.items():
     mask = dfp.variationID == key
-    data[:, key] = dfp[mask].distortion
-    cols.append("p{}s{}".format(val['patches'], val['shiftfactor']))
+    fragment = dfp[mask][['userID', 'distortion']].set_index(['userID'])
+    fragment.columns = ["p{}s{}".format(val['patches'], val['shiftfactor'])]
+    fragments.append(fragment)
+
 # variation-wise dataset
-df_vw = pd.DataFrame(data, columns=cols)
+df_vw = reduce(lambda l, r: l.join(r), fragments[1:], fragments[0])
 df_vw.boxplot(grid=False)
 
-
-#%%
-fig, axes = plt.subplots(10,1, figsize=(25, 10))
+#%% Recreate Multi Histogram
+fig, axes = plt.subplots(10,1, figsize=(30, 10))
 for id_ax, ax in enumerate(axes.flatten()):
   var = illusion_variations[id_ax]
   ax.set_title('# Patches: {}, Shift Factor: {}'.format(var["patches"], var['shiftfactor']))
   dfp[dfp.variationID == id_ax].distortion.hist(ax=ax, range=(0,1), bins=100)
-
 fig.tight_layout()
-#%%
-
-
 #%%
