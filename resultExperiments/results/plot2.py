@@ -29,6 +29,9 @@ for file in os.listdir(path):
 df = pd.concat(fragments, ignore_index=True)
 dfp = df[df.illusionName == 'Popple Illusion'].copy()
 
+#%% Print initial dataFrame
+df
+
 #%% Swap ids to correct shiftfactor order
 mask_7 = dfp.variationID == 7
 mask_6 = dfp.variationID == 6
@@ -39,12 +42,18 @@ dfp.loc[mask_6 , 'variationID'] = 7
 fragments = []
 for key, val in illusion_variations.items():
     mask = dfp.variationID == key
-    fragment = dfp[mask][['userID', 'distortion']].set_index(['userID'])
-    fragment.columns = ["p{}s{}".format(val['patches'], val['shiftfactor'])]
+    fragment = dfp[mask][['userID', 'distortion', 'inverted']].set_index(['userID'])
+    fragment.columns = [
+      "D-p{}s{}".format(val['patches'], val['shiftfactor']),
+      "I-p{}s{}".format(val['patches'], val['shiftfactor'])
+    ]
     fragments.append(fragment)
 
 # variation-wise dataset
 df_vw = reduce(lambda l, r: l.join(r), fragments[1:], fragments[0])
+
+#%% Print userID DataFrameiloc[:,:10]
+df_vw
 
 #%% add demographics to data
 path = 'resultExperiments/results/questionnaire/'
@@ -57,7 +66,17 @@ for user_id in df_vw.index:
   df_vw.loc[user_id, 'gender'] = questionnaire['Gender']
 
 #%% box plot of distortions
-df_vw.iloc[:,:10].boxplot(grid=False)
+df_vw.filter(regex='D-*').boxplot(grid=False)
+
+#%% box plot of distortions
+df_vw.filter(regex='I-*').boxplot(grid=False)
+
+#%%
+pd.DataFrame([df_vw[c].value_counts() for c in df_vw.filter(regex='I-*')]).transpose()
+
+#%%
+df_vw.filter(like='I-p40s8').hist()
+
 #%% age distribution
 df_vw['age'].value_counts().plot.bar()
 
