@@ -4,6 +4,7 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 from functools import reduce
+from scipy.stats import norm
 
 illusion_variations = {
     0: {"originalID": 0, "patches" : 40, 'shiftfactor': 4}, 
@@ -66,7 +67,41 @@ for user_id in df_vw.index:
   df_vw.loc[user_id, 'gender'] = questionnaire['Gender']
 
 #%% box plot of distortions
-df_vw.filter(regex='D-*').boxplot(grid=False)
+fig, ax = plt.subplots(1, 1, figsize=(15,10))
+df_vw.filter(regex='D-*').boxplot(
+        grid=False,
+        ax=ax
+      )
+ax.set_title("Distortion Factor for each Configuration")
+fig.savefig('plots/boxes')
+
+#%% Aggregated boxplots
+fig, ax = plt.subplots(1, 1, figsize=(5,10))
+bp_aggregated = pd.DataFrame([
+    df_vw.filter(regex='D-.*s4').melt()['value'],
+    df_vw.filter(regex='D-.*s8').melt()['value']
+  ]).transpose()
+bp_aggregated.columns = ['s4', 's8']
+bp_aggregated.boxplot(grid=False, ax=ax)
+ax.set_title("Aggregated Distortion over all Patchsizes")
+fig.savefig('plots/aggregated_boxes')
+
+
+
+#%% Aggregated boxplots
+fig, ax = plt.subplots(1, 1, figsize=(5,10))
+bp_aggregated = pd.DataFrame([
+    df_vw.filter(regex='D-p40*').melt()['value'],
+    df_vw.filter(regex='D-p56*').melt()['value'],
+    df_vw.filter(regex='D-p72*').melt()['value'],
+    df_vw.filter(regex='D-p88*').melt()['value'],
+    df_vw.filter(regex='D-p104*').melt()['value']
+  ]).transpose()
+bp_aggregated.columns = ['p40', 'p56', 'p72', 'p88', 'p104']
+bp_aggregated.boxplot(grid=False, ax=ax)
+ax.set_title("Aggregated Distortion over all Shiftfactors")
+fig.savefig('plots/aggregated_boxes_size')
+
 
 #%% box plot of distortions
 df_vw.filter(regex='I-*').boxplot(grid=False)
@@ -87,10 +122,14 @@ df_vw['gender'].value_counts().plot.bar()
 df_vw['vimp'].value_counts().plot.bar()
 
 #%% Recreate Multi Histogram
-fig, axes = plt.subplots(10,1, figsize=(30, 10))
+fig, axes = plt.subplots(10,1, figsize=(20, 15))
 for id_ax, ax in enumerate(axes.flatten()):
   var = illusion_variations[id_ax]
   ax.set_title('# Patches: {}, Shift Factor: {}'.format(var["patches"], var['shiftfactor']))
-  dfp[dfp.variationID == id_ax].distortion.hist(ax=ax, range=(0,1), bins=100)
+  data = dfp[dfp.variationID == id_ax].distortion
+  data.hist(ax=ax, range=(0,1), bins=100, density=True)
+  r = np.arange(0, 1, 0.001)
+  ax.plot(r, norm.pdf(r, data.mean(), data.std()))
 fig.tight_layout()
+fig.savefig('plots/distribution')
 #%%
