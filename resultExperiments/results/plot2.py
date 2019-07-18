@@ -4,7 +4,7 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 from functools import reduce
-from scipy.stats import norm
+from scipy import stats
 
 illusion_variations = {
     0: {"originalID": 0, "patches" : 40, 'shiftfactor': 4}, 
@@ -86,6 +86,25 @@ bp_aggregated.boxplot(grid=False, ax=ax)
 ax.set_title("Aggregated Distortion over all Patchsizes")
 fig.savefig('plots/aggregated_boxes')
 
+#%%
+bp_aggregated
+
+#%%
+fig, ax = plt.subplots(1, 2, figsize=(10,5))
+stats.probplot(bp_aggregated['s4'], plot=ax[0])
+stats.probplot(bp_aggregated['s8'], plot=ax[1])
+fig.tight_layout()
+
+#%% Perform a shapiro / kstest test on data
+print(stats.shapiro(bp_aggregated['s4']))
+print(stats.shapiro(bp_aggregated['s8']))
+print(stats.kstest(bp_aggregated['s4'], 'norm'))
+print(stats.kstest(bp_aggregated['s8'], 'norm'))
+
+print(stats.ttest_ind(bp_aggregated['s4'], bp_aggregated['s8']))
+print(bp_aggregated.kurtosis())
+
+print(stats.ttest_1samp(bp_aggregated, 0.5))
 
 
 #%% Aggregated boxplots
@@ -129,7 +148,7 @@ for id_ax, ax in enumerate(axes.flatten()):
   data = dfp[dfp.variationID == id_ax].distortion
   data.hist(ax=ax, range=(0,1), bins=100, density=True)
   r = np.arange(0, 1, 0.001)
-  ax.plot(r, norm.pdf(r, data.mean(), data.std()))
+  ax.plot(r, stats.norm.pdf(r, data.mean(), data.std()))
 fig.tight_layout()
 fig.savefig('plots/distribution')
 #%%
