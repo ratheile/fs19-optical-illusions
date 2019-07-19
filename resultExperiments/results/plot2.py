@@ -87,7 +87,8 @@ bp_aggregated = pd.DataFrame([
     df_vw.filter(regex='D-.*s8').melt()['value']
   ]).transpose()
 bp_aggregated.columns = ['s4', 's8']
-bp_aggregated.boxplot(grid=False, ax=ax)
+# bp_aggregated.boxplot(grid=False, ax=ax)
+sns.violinplot(data=bp_aggregated)
 ax.set_title("Aggregated Distortion over all Patchsizes")
 fig.savefig('plots/aggregated_boxes')
 
@@ -109,7 +110,7 @@ print(stats.kstest(bp_aggregated['s8'], 'norm'))
 print(stats.ttest_ind(bp_aggregated['s4'], bp_aggregated['s8']))
 print(bp_aggregated.kurtosis())
 
-print(stats.ttest_1samp(bp_aggregated, 0.5))
+print(stats.ttest_1samp(bp_aggregated, 0.0))
 
 
 #%% Aggregated boxplots
@@ -128,7 +129,28 @@ ax.set_title("Aggregated Distortion over all Shiftfactors")
 fig.savefig('plots/aggregated_boxes_size')
 
 #%% Stat analysis of # patches
+p_vals = np.zeros((5,5))
+for id_x, col in enumerate(bp_aggregated):
+  print(stats.kstest(bp_aggregated[col], 'norm'))
+  # stats.probplot(bp_aggregated[col], plot=ax)
+  for id_y, row in enumerate(bp_aggregated):
+    p_vals[id_y, id_x] = stats.ttest_ind(
+      bp_aggregated[col],
+      bp_aggregated[row]
+    ).pvalue
 
+print(stats.ttest_1samp(bp_aggregated, 0.0))
+
+p_val_df = pd.DataFrame(p_vals)
+p_val_df = p_val_df.set_index(pd.Index(bp_aggregated.columns))
+p_val_df.columns = bp_aggregated.columns
+
+fig, ax = plt.subplots(1, 1, figsize=(5,10))
+plot = ax.matshow((p_val_df < 0.05).astype(int))
+ax.set_xticklabels(bp_aggregated.columns)
+ax.set_yticklabels(bp_aggregated.columns)
+ax.set_xticks(np.arange(len(bp_aggregated.columns)))
+ax.set_yticks(np.arange(len(bp_aggregated.columns)))
 
 
 #%% box plot of distortions
