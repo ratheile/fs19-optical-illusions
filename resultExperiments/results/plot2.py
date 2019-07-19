@@ -6,6 +6,8 @@ import numpy as np
 from functools import reduce
 from scipy import stats
 
+plt.style.use('seaborn-paper')
+
 illusion_variations = {
     0: {"originalID": 0, "patches" : 40, 'shiftfactor': 4}, 
     1: {"originalID": 1, "patches" : 40, 'shiftfactor': 8}, 
@@ -29,9 +31,11 @@ for file in os.listdir(path):
 
 df = pd.concat(fragments, ignore_index=True)
 dfp = df[df.illusionName == 'Popple Illusion'].copy()
-
+dfp
+#%% Correct distortion to be in % of radius 
+dfp['distortion'] = dfp['distortion'] * 0.2 - 0.1
 #%% Print initial dataFrame
-df
+dfp
 
 #%% Swap ids to correct shiftfactor order
 mask_7 = dfp.variationID == 7
@@ -141,7 +145,7 @@ df_vw['gender'].value_counts().plot.bar()
 df_vw['vimp'].value_counts().plot.bar()
 
 #%% Recreate Multi Histogram
-fig, axes = plt.subplots(10,1, figsize=(20, 15))
+fig, axes = plt.subplots(10,1, figsize=(5, 15))
 for id_ax, ax in enumerate(axes.flatten()):
   var = illusion_variations[id_ax]
   ax.set_title('# Patches: {}, Shift Factor: {}'.format(var["patches"], var['shiftfactor']))
@@ -149,6 +153,7 @@ for id_ax, ax in enumerate(axes.flatten()):
   data.hist(ax=ax, range=(0,1), bins=100, density=True)
   r = np.arange(0, 1, 0.001)
   ax.plot(r, stats.norm.pdf(r, data.mean(), data.std()))
+  ax.set_xlim(0.2, 0.6)
 fig.tight_layout()
 fig.savefig('plots/distribution')
 #%%
