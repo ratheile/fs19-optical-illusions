@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from functools import reduce
 from scipy import stats
+import seaborn as sns
 
 plt.style.use('seaborn-paper')
 
@@ -99,7 +100,7 @@ stats.probplot(bp_aggregated['s4'], plot=ax[0])
 stats.probplot(bp_aggregated['s8'], plot=ax[1])
 fig.tight_layout()
 
-#%% Perform a shapiro / kstest test on data
+#%% Perform a shapiro / kstest test on shift factor data
 print(stats.shapiro(bp_aggregated['s4']))
 print(stats.shapiro(bp_aggregated['s8']))
 print(stats.kstest(bp_aggregated['s4'], 'norm'))
@@ -121,9 +122,13 @@ bp_aggregated = pd.DataFrame([
     df_vw.filter(regex='D-p104*').melt()['value']
   ]).transpose()
 bp_aggregated.columns = ['p40', 'p56', 'p72', 'p88', 'p104']
-bp_aggregated.boxplot(grid=False, ax=ax)
+# bp_aggregated.boxplot(grid=False, ax=ax)
+sns.violinplot(data=bp_aggregated)
 ax.set_title("Aggregated Distortion over all Shiftfactors")
 fig.savefig('plots/aggregated_boxes_size')
+
+#%% Stat analysis of # patches
+
 
 
 #%% box plot of distortions
@@ -150,10 +155,14 @@ for id_ax, ax in enumerate(axes.flatten()):
   var = illusion_variations[id_ax]
   ax.set_title('# Patches: {}, Shift Factor: {}'.format(var["patches"], var['shiftfactor']))
   data = dfp[dfp.variationID == id_ax].distortion
-  data.hist(ax=ax, range=(0,1), bins=100, density=True)
-  r = np.arange(0, 1, 0.001)
+  data.hist(ax=ax, range=(-0.1,0.1), bins=100, density=True)
+  r = np.arange(-0.1, 0.1, 0.001)
   ax.plot(r, stats.norm.pdf(r, data.mean(), data.std()))
-  ax.set_xlim(0.2, 0.6)
+  ax.set_xlim(-0.05, 0.05)
 fig.tight_layout()
 fig.savefig('plots/distribution')
+#%%
+data.mean()
+data.std()
+
 #%%
