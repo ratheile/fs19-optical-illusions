@@ -7,7 +7,7 @@ from functools import reduce
 from scipy import stats
 import seaborn as sns
 
-plt.style.use('seaborn-')
+plt.style.use('seaborn-white')
 
 illusion_variations = {
     0: {"originalID": 0, "patches" : 40, 'shiftfactor': 4}, 
