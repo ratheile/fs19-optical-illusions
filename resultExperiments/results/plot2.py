@@ -7,7 +7,7 @@ from functools import reduce
 from scipy import stats
 import seaborn as sns
 
-plt.style.use('seaborn-paper')
+plt.style.use('seaborn-')
 
 illusion_variations = {
     0: {"originalID": 0, "patches" : 40, 'shiftfactor': 4}, 
@@ -115,46 +115,88 @@ print(stats.ttest_1samp(bp_aggregated, 0.0))
 
 #%% Aggregated boxplots
 fig, ax = plt.subplots(1, 1, figsize=(5,10))
-bp_aggregated = pd.DataFrame([
+bp_patches = pd.DataFrame([
     df_vw.filter(regex='D-p40*').melt()['value'],
     df_vw.filter(regex='D-p56*').melt()['value'],
     df_vw.filter(regex='D-p72*').melt()['value'],
     df_vw.filter(regex='D-p88*').melt()['value'],
     df_vw.filter(regex='D-p104*').melt()['value']
   ]).transpose()
-bp_aggregated.columns = ['p40', 'p56', 'p72', 'p88', 'p104']
+bp_patches.columns = ['p40', 'p56', 'p72', 'p88', 'p104']
 # bp_aggregated.boxplot(grid=False, ax=ax)
-sns.violinplot(data=bp_aggregated)
+sns.violinplot(data=bp_patches)
 ax.set_title("Aggregated Distortion over all Shiftfactors")
 fig.savefig('plots/aggregated_boxes_size')
 
+#%%
+columns = ['p40', 'p56', 'p72', 'p88', 'p104']
+s4 = df_vw.filter(regex='D-.*s4').copy().melt(
+  var_name='patches', value_name='distortion')
+s8 = df_vw.filter(regex='D-.*s8').copy().melt(
+  var_name='patches', value_name='distortion')
+s4['patches'] = s4['patches'].apply(lambda v: v[:-2])
+s8['patches'] = s8['patches'].apply(lambda v: v[:-2])
+s4['shift'] = 4 
+s8['shift'] = 8 
+bp_patches_long = pd.concat(
+  [s4, s8]
+)
+fig, ax = plt.subplots(1, 1, figsize=(5,10))
+# bp_aggregated.boxplot(grid=False, ax=ax)
+sns.violinplot(x='patches', y='distortion',
+  data=bp_patches_long,
+  split=True,
+  hue='shift')
+ax.set_title("aggregated distortion over all patch sizes")
+fig.savefig('plots/aggregated_boxes_size')
+
+#%%
+fig, axes = plt.subplots(1, 2, figsize=(10,10))
+
+ax = axes[0]
+sns.violinplot(x='patches', y='distortion',
+    data=bp_patches_long,
+    split=True,
+    ax=ax,
+    order=['D-p40', 'D-p56', 'D-p72', 'D-p88', 'D-p104'],
+    hue='shift'
+  )
+
+ax = axes[1]
+bp_patches.boxplot(grid=False, ax=ax)
+
+
 #%% Stat analysis of # patches
 p_vals = np.zeros((5,5))
-for id_x, col in enumerate(bp_aggregated):
-  print(stats.kstest(bp_aggregated[col], 'norm'))
+for id_x, col in enumerate(bp_patches):
+  print(stats.shapiro(bp_patches[col]))
+  print(stats.kstest(bp_patches[col], 'norm'))
   # stats.probplot(bp_aggregated[col], plot=ax)
-  for id_y, row in enumerate(bp_aggregated):
+  for id_y, row in enumerate(bp_patches):
     p_vals[id_y, id_x] = stats.ttest_ind(
-      bp_aggregated[col],
-      bp_aggregated[row]
+      bp_patches[col],
+      bp_patches[row]
     ).pvalue
 
-print(stats.ttest_1samp(bp_aggregated, 0.0))
+print(stats.ttest_1samp(bp_patches, 0.0))
 
 p_val_df = pd.DataFrame(p_vals)
-p_val_df = p_val_df.set_index(pd.Index(bp_aggregated.columns))
-p_val_df.columns = bp_aggregated.columns
+p_val_df = p_val_df.set_index(pd.Index(bp_patches.columns))
+p_val_df.columns = bp_patches.columns
 
 fig, ax = plt.subplots(1, 1, figsize=(5,10))
-plot = ax.matshow((p_val_df < 0.05).astype(int))
-ax.set_xticklabels(bp_aggregated.columns)
-ax.set_yticklabels(bp_aggregated.columns)
-ax.set_xticks(np.arange(len(bp_aggregated.columns)))
-ax.set_yticks(np.arange(len(bp_aggregated.columns)))
+plot = ax.matshow((p_val_df < 0.05).astype(int), cmap='RdYlGn')
+ax.set_title('t-test: p-value < 0.05')
+ax.set_xticklabels(bp_patches.columns)
+ax.set_yticklabels(bp_patches.columns)
+ax.set_xticks(np.arange(len(bp_patches.columns)))
+ax.set_yticks(np.arange(len(bp_patches.columns)))
+fig.savefig('plots/ttest_patch_size_matrix.png')
 
 
 #%% box plot of distortions
 df_vw.filter(regex='I-*').boxplot(grid=False)
+df_vw.filter(regex='I-*').mean().mean()
 
 #%%
 pd.DataFrame([df_vw[c].value_counts() for c in df_vw.filter(regex='I-*')]).transpose()
@@ -186,5 +228,11 @@ fig.savefig('plots/distribution')
 #%%
 data.mean()
 data.std()
+
+#%%
+tips = sns.load_dataset("tips")
+
+#%%
+tips
 
 #%%
