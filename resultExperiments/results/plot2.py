@@ -81,7 +81,7 @@ ax.set_title("Distortion Factor for each Configuration")
 fig.savefig('plots/boxes')
 
 #%% Aggregated boxplots
-fig, ax = plt.subplots(1, 1, figsize=(5,10))
+fig, ax = plt.subplots(1, 1, figsize=(5,7))
 bp_aggregated = pd.DataFrame([
     df_vw.filter(regex='D-.*s4').melt()['value'],
     df_vw.filter(regex='D-.*s8').melt()['value']
@@ -89,17 +89,21 @@ bp_aggregated = pd.DataFrame([
 bp_aggregated.columns = ['s4', 's8']
 # bp_aggregated.boxplot(grid=False, ax=ax)
 sns.violinplot(data=bp_aggregated)
-ax.set_title("Aggregated Distortion over all Patchsizes")
-fig.savefig('plots/aggregated_boxes')
+ax.set_title("distortion w.r.t. shift factor")
+fig.savefig('plots/violin_plot_shift_factor.png')
 
 #%%
 bp_aggregated
 
 #%%
-fig, ax = plt.subplots(1, 2, figsize=(10,5))
+fig, ax = plt.subplots(1, 2, figsize=(6,3))
 stats.probplot(bp_aggregated['s4'], plot=ax[0])
 stats.probplot(bp_aggregated['s8'], plot=ax[1])
+ax[0].set_title("Q-Q plot of shift factor 4 data")
+ax[1].set_title("Q-Q plot of shift factor 8 data")
 fig.tight_layout()
+fig.savefig('plots/qqplot.png')
+
 
 #%% Perform a shapiro / kstest test on shift factor data
 print(stats.shapiro(bp_aggregated['s4']))
@@ -141,14 +145,44 @@ s8['shift'] = 8
 bp_patches_long = pd.concat(
   [s4, s8]
 )
-fig, ax = plt.subplots(1, 1, figsize=(5,10))
+fig, ax = plt.subplots(1, 1, figsize=(5,7))
+
 # bp_aggregated.boxplot(grid=False, ax=ax)
 sns.violinplot(x='patches', y='distortion',
   data=bp_patches_long,
   split=True,
+  order=['D-'+c for c in columns],
+  inner='quartile',
   hue='shift')
-ax.set_title("aggregated distortion over all patch sizes")
-fig.savefig('plots/aggregated_boxes_size')
+ax.set_title("aggregated distortion over all # of patches ")
+fig.tight_layout()
+fig.savefig('plots/violin_plot_patch_size.png')
+
+#%%
+fig, ax = plt.subplots(1, 1, figsize=(5,3))
+d_mean = []
+for c in columns:
+  p4 = bp_patches_long[
+    (bp_patches_long['patches'] == 'D-{}'.format(c)) &
+    (bp_patches_long['shift'] == 4)
+  ]
+  p8 = bp_patches_long[
+    (bp_patches_long['patches'] == 'D-{}'.format(c)) &
+    (bp_patches_long['shift'] == 8)
+  ]
+  d_mean.append([
+    p4['distortion'].mean(),
+    p8['distortion'].mean()]) 
+  
+d_mean_df = pd.DataFrame(d_mean)
+d_mean_df = d_mean_df.set_index(pd.Index(columns))
+d_mean_df.columns = [4,8]
+ax.set_title('increased influence of sf-8 for small # of patches')
+(np.abs(d_mean_df[8] - d_mean_df[4])).plot(ax=ax, marker='o')
+ax.set_ylabel('abs(mean(sf = 8) - mean(sf = 4))')
+ax.set_xlabel('# of patches')
+fig.tight_layout()
+fig.savefig('plots/means_diverge.png')
 
 #%%
 fig, axes = plt.subplots(1, 2, figsize=(10,10))
@@ -184,13 +218,15 @@ p_val_df = pd.DataFrame(p_vals)
 p_val_df = p_val_df.set_index(pd.Index(bp_patches.columns))
 p_val_df.columns = bp_patches.columns
 
-fig, ax = plt.subplots(1, 1, figsize=(5,10))
+fig, ax = plt.subplots(1, 1, figsize=(3,3))
 plot = ax.matshow((p_val_df < 0.05).astype(int), cmap='RdYlGn')
-ax.set_title('t-test: p-value < 0.05')
+ax.set_title('pairwise t-test: p-value < 0.05')
 ax.set_xticklabels(bp_patches.columns)
 ax.set_yticklabels(bp_patches.columns)
 ax.set_xticks(np.arange(len(bp_patches.columns)))
 ax.set_yticks(np.arange(len(bp_patches.columns)))
+ax.set_facecolor('white')
+fig.tight_layout()
 fig.savefig('plots/ttest_patch_size_matrix.png')
 
 
