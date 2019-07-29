@@ -22,7 +22,7 @@ illusion_variations = {
     9: {"originalID": 9, "patches" : 104, 'shiftfactor': 8} 
 }
 #%% Create one data table with ids and results
-path = 'resultExperiments/results/experiment/'
+path = 'Results/Data/experiment/'
 fragments = []
 for file in os.listdir(path):
   fragment = pd.read_json(path + file)
@@ -62,7 +62,7 @@ df_vw = reduce(lambda l, r: l.join(r), fragments[1:], fragments[0])
 df_vw
 
 #%% add demographics to data
-path = 'resultExperiments/results/questionnaire/'
+path = 'Results/Data/questionnaire/'
 for user_id in df_vw.index:
   questionnaire = pd.read_json('{}{}.json'.format(path, user_id), typ='series')
   df_vw.loc[user_id, 'vimp'] = questionnaire['Do you have any visual impairments?']
@@ -78,7 +78,7 @@ df_vw.filter(regex='D-*').boxplot(
         ax=ax
       )
 ax.set_title("Distortion Factor for each Configuration")
-fig.savefig('plots/boxes')
+fig.savefig('Plots/boxes')
 
 #%% Aggregated boxplots
 fig, ax = plt.subplots(1, 1, figsize=(5,7))
@@ -90,7 +90,7 @@ bp_aggregated.columns = ['s4', 's8']
 # bp_aggregated.boxplot(grid=False, ax=ax)
 sns.violinplot(data=bp_aggregated)
 ax.set_title("distortion w.r.t. shift factor")
-fig.savefig('plots/violin_plot_shift_factor.png')
+fig.savefig('Plots/violin_plot_shift_factor.png')
 
 #%%
 bp_aggregated
@@ -102,7 +102,7 @@ stats.probplot(bp_aggregated['s8'], plot=ax[1])
 ax[0].set_title("Q-Q plot of shift factor 4 data")
 ax[1].set_title("Q-Q plot of shift factor 8 data")
 fig.tight_layout()
-fig.savefig('plots/qqplot.png')
+fig.savefig('Plots/qqplot.png')
 
 
 #%% Perform a shapiro / kstest test on shift factor data
@@ -130,7 +130,7 @@ bp_patches.columns = ['p40', 'p56', 'p72', 'p88', 'p104']
 # bp_aggregated.boxplot(grid=False, ax=ax)
 sns.violinplot(data=bp_patches)
 ax.set_title("Aggregated Distortion over all Shiftfactors")
-fig.savefig('plots/aggregated_boxes_size')
+fig.savefig('Plots/aggregated_boxes_size')
 
 #%%
 columns = ['p40', 'p56', 'p72', 'p88', 'p104']
@@ -156,7 +156,7 @@ sns.violinplot(x='patches', y='distortion',
   hue='shift')
 ax.set_title("aggregated distortion over all # of patches ")
 fig.tight_layout()
-fig.savefig('plots/violin_plot_patch_size.png')
+fig.savefig('Plots/violin_plot_patch_size.png')
 
 #%%
 fig, ax = plt.subplots(1, 1, figsize=(5,3))
@@ -182,7 +182,7 @@ ax.set_title('increased influence of sf-8 for small # of patches')
 ax.set_ylabel('abs(mean(sf = 8) - mean(sf = 4))')
 ax.set_xlabel('# of patches')
 fig.tight_layout()
-fig.savefig('plots/means_diverge.png')
+fig.savefig('Plots/means_diverge.png')
 
 #%%
 fig, axes = plt.subplots(1, 2, figsize=(10,10))
@@ -227,7 +227,7 @@ ax.set_xticks(np.arange(len(bp_patches.columns)))
 ax.set_yticks(np.arange(len(bp_patches.columns)))
 ax.set_facecolor('white')
 fig.tight_layout()
-fig.savefig('plots/ttest_patch_size_matrix.png')
+fig.savefig('Plots/ttest_patch_size_matrix.png')
 
 
 #%% box plot of distortions
@@ -260,7 +260,7 @@ for id_ax, ax in enumerate(axes.flatten()):
   ax.plot(r, stats.norm.pdf(r, data.mean(), data.std()))
   ax.set_xlim(-0.05, 0.05)
 fig.tight_layout()
-fig.savefig('plots/distribution')
+fig.savefig('Plots/distribution')
 #%%
 data.mean()
 data.std()
