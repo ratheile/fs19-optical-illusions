@@ -1,27 +1,13 @@
 # fs19-optical-illusions
 Neural Systems Project
 
-# Conda
-There is an environment file. use it with:
+# Important Files
+- Code: [[Link](illusionApp)]
+- Data Science: [[ipynb](Results/Results.ipynb)][[vscode cells](Results/GeneratePlots.py)]
+- Report: [[Link](Report.pdf)]
 
-```
-conda env install -f environment.yml
-conda env update -f environment.yml
-```
-
-# Meeting
-Friday: 11:00 at INI
-
-# Goals
-
-## Week 1
-* Summary of illusionary Thinks
-* Prepare Repository
-* Commit papers to git
-
-
-# Math
-# Gabor Parameter
+# Notes
+## Gabor Parameter
 ksize is the size of the Gabor kernel. If ksize = (a, b), we then have a Gabor kernel of size a x b pixels. As with many other convolution kernels, ksize is preferably odd and the kernel is a square (just for the sake of uniformity).
 
 sigma is the standard deviation of the Gaussian function used in the Gabor filter.
