@@ -2,7 +2,7 @@
 Neural Systems Project
 
 # Important Files
-- Code: [[Link](illusionApp)]
+- Code: [[Link](src)]
 - Data Science: [[ipynb](Results/Results.ipynb)][[vscode cells](Results/GeneratePlots.py)]
 - Report: [[Link](Report.pdf)]
 
